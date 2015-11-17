@@ -192,6 +192,7 @@ def AudioCallback(in_data, frame_count, time_info, status):
 def MidiCallback(message, time_stamp):
     global playingnotes, sustain, sustainplayingnotes
     global preset
+	global globalvolume
     messagetype = message[0] >> 4
     messagechannel = (message[0] & 15) + 1
     note = message[1] if len(message) > 1 else None
@@ -232,6 +233,8 @@ def MidiCallback(message, time_stamp):
     elif (messagetype == 11) and (note == 64) and (velocity >= 64):  # sustain pedal on
         sustain = True
 
+    elif (messagetype == 11) and (note == 7):  # volume slider
+        globalvolume = (1-velocity/127)*-15 # ranges from -15 to 0 now
 
 #########################################
 # LOAD SAMPLES
@@ -264,6 +267,7 @@ def ActuallyLoad():
     global samples
     global playingsounds
     global globalvolume, globaltranspose
+	
     playingsounds = []
     samples = {}
     globalvolume = 10 ** (VOLUME/20)  # -12dB default global volume
