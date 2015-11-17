@@ -20,7 +20,7 @@ USE_SERIALPORT_MIDI = False             # Set to True to enable MIDI IN via Seri
 USE_I2C_7SEGMENTDISPLAY = False         # Set to True to use a 7-segment display via I2C
 USE_BUTTONS = False                     # Set to True to use momentary buttons (connected to RaspberryPi's GPIO pins) to change preset
 MAX_POLYPHONY = 80                      # This can be set higher, but 80 is a safe value
-
+VOLUME = -4.0                           # Volume for playing, use real notation with .0!
 
 #########################################
 # IMPORT
@@ -165,7 +165,7 @@ playingnotes = {}
 sustainplayingnotes = []
 sustain = False
 playingsounds = []
-globalvolume = 10 ** (-12.0/20)  # -12dB default global volume
+globalvolume = 10 ** (VOLUME/20)  # -12dB default global volume
 globaltranspose = 0
 
 
@@ -266,7 +266,7 @@ def ActuallyLoad():
     global globalvolume, globaltranspose
     playingsounds = []
     samples = {}
-    globalvolume = 10 ** (-12.0/20)  # -12dB default global volume
+    globalvolume = 10 ** (VOLUME/20)  # -12dB default global volume
     globaltranspose = 0
 
     basename = next((f for f in os.listdir(SAMPLES_DIR) if f.startswith("%d " % preset)), None)      # or next(glob.iglob("blah*"), None)
