@@ -36,16 +36,16 @@ GPIO.setmode(GPIO.BCM)
 # CONFIG
 #########################################
 
-AUDIO_DEVICE_ID = 2                     # change this number to use another soundcard
-SAMPLES_DIR = "."                       # The root directory containing the sample-sets. Example: "/media/" to look for samples on a USB stick / SD card
+AUDIO_DEVICE_ID = 0                     # change this number to use another soundcard
+SAMPLES_DIR = "/home/pi/Music/"         # The root directory containing the sample-sets. Example: "/media/" to look for samples on a USB stick / SD card
 USE_SERIALPORT_MIDI = False             # Set to True to enable MIDI IN via SerialPort (e.g. RaspberryPi's GPIO UART pins)
 USE_I2C_7SEGMENTDISPLAY = False         # Set to True to use a 7-segment display via I2C
 USE_BUTTONS = False                     # Set to True to use momentary buttons (connected to RaspberryPi's GPIO pins) to change preset
 presetuppin = 14                        # GPIO Pin If hw button used for up preset
 presetdownpin = 15                      # GPIO Pin If hw button used for down preset
 MAX_POLYPHONY = 80                      # This can be set higher, but 80 is a safe value
-VOLUME = -4.0                           # Volume for playing, use real notation with .0!
-USE_DOTSTAR = True                      # To use dotstar strip
+VOLUME = -1.0                           # Volume for playing, use real notation with .0!
+USE_DOTSTAR = False                     # To use dotstar strip
 numpixels = 60                          # Number of LEDs in dotstar strip
 datapin   = 23                          # Dotstar datapin on GPIO
 clockpin  = 24                          # Dotstar clockpin on GPIO
@@ -53,14 +53,14 @@ defaultcolor = 0xFFFFFF                 # White
 strokecolor = 0x00FF00                  # Green
 brightness = 64                         # Brightness overall between 0 and 256
 USE_VOLUMESLIDER = True                 # To use hardware volume slider USB keyboard
-USE_CANDLE = True                       # To light candle when piano played, auto on and auto off
+USE_CANDLE = False                       # To light candle when piano played, auto on and auto off
 candleleftpin = 8                       # Pin for left candle LED
 candlerightpin = 7                      # Pin for left candle LED
 
 
 if USE_DOTSTAR:
-	strip = Adafruit_DotStar(numpixels, datapin, clockpin) # Open strip to be used in multiple threads
-	strip.begin()           # Initialize pins for output
+    strip = Adafruit_DotStar(numpixels, datapin, clockpin) # Open strip to be used in multiple threads
+    strip.begin()           # Initialize pins for output
     strip.setBrightness(brightness) # Limit brightness to ~1/4 duty cycle
 lastnoteplayed = datetime.date(1,1,1) # Dummy date long gone
 
@@ -190,7 +190,7 @@ sustainplayingnotes = []
 sustain = False
 playingsounds = []
 globalvolume = 10 ** (VOLUME/20)  # -12dB default global volume
-globaltranspose = 0
+globaltranspose = 12
 numpresets = 1 # By default there should be at least one...
 
 #########################################
@@ -216,8 +216,8 @@ def AudioCallback(in_data, frame_count, time_info, status):
 def MidiCallback(message, time_stamp):
     global playingnotes, sustain, sustainplayingnotes
     global preset
-	global globalvolume
-	global lastnoteplayed
+    global globalvolume
+    global lastnoteplayed
     messagetype = message[0] >> 4
     messagechannel = (message[0] & 15) + 1
     note = message[1] if len(message) > 1 else None
@@ -229,10 +229,10 @@ def MidiCallback(message, time_stamp):
 
     if messagetype == 9:    # Note on
         midinote += globaltranspose
-		if USE_DOTSTAR and (midinote>offset) and (midinote<127-offset):
-		    strip.setPixelColor(midinote-offset, strokecolor)
-            strip.show() # Update strip			
-			lastnoteplayed = datetime.now()
+        if USE_DOTSTAR and (midinote>offset) and (midinote<127-offset):
+            strip.setPixelColor(midinote-offset, strokecolor)
+            strip.show() # Update strip         
+            lastnoteplayed = datetime.now()
         try:
             playingnotes.setdefault(midinote, []).append(samples[midinote, velocity].play(midinote))
         except:
@@ -240,9 +240,9 @@ def MidiCallback(message, time_stamp):
 
     elif messagetype == 8:  # Note off
         midinote += globaltranspose
-		if USE_DOTSTAR and (midinote>offset) and (midinote<127-offset):
-		    strip.setPixelColor(midinote-offset, defaultcolor) 
-            strip.show() # Update strip				
+        if USE_DOTSTAR and (midinote>offset) and (midinote<127-offset):
+            strip.setPixelColor(midinote-offset, defaultcolor) 
+            strip.show() # Update strip             
         if midinote in playingnotes:
             for n in playingnotes[midinote]:
                 if sustain:
@@ -266,22 +266,22 @@ def MidiCallback(message, time_stamp):
         sustain = True
 
     elif (messagetype == 11) and (note == 7) and USE_VOLUMESLIDER:  # volume slider
-		print('Debug: volume slider activated')
+        print('Debug: volume slider activated')
         globalvolume = (1-velocity/127)*-15 # ranges from -15 to 0 now
 
     elif (messagetype == 11) and (note == 99): # preset up button TBC from octave+
-		print('Debug: button preset up pressed')
-		preset += 1
-		if preset > numpresets-1:
-			preset = 0
-		LoadSamples()
+        print('Debug: button preset up pressed')
+        preset += 1
+        if preset > numpresets-1:
+            preset = 0
+        LoadSamples()
 
     elif (messagetype == 11) and (note == 100): # preset down button TBC from octave-
-		print('Debug: button preset down pressed')
-		preset -= 1
-		if preset < 0:
-			preset = numpresets-1
-		LoadSamples()
+        print('Debug: button preset down pressed')
+        preset -= 1
+        if preset < 0:
+            preset = numpresets-1
+        LoadSamples()
 
 #########################################
 # LOAD SAMPLES
@@ -314,20 +314,20 @@ def ActuallyLoad():
     global samples
     global playingsounds
     global globalvolume, globaltranspose
-	global numpresets
-	
+    global numpresets
+    
     playingsounds = []
     samples = {}
     globalvolume = 10 ** (VOLUME/20)  # -12dB default global volume
-    globaltranspose = 0
+    globaltranspose = 12
 
-	numpresets=0 # Determine number of presets available
-	for root, dirs, files in os.walk(SAMPLES_DIR):
-		for name in dirs:
-			print os.path.join(root, name)
-			numpresets += 1
-	print('Found '+str(numpresets)+' number of presets')
-	
+    numpresets=0 # Determine number of presets available
+    for root, dirs, files in os.walk(SAMPLES_DIR):
+        for name in dirs:
+            print os.path.join(root, name)
+            numpresets += 1
+    print('Found '+str(numpresets)+' number of presets')
+    
     basename = next((f for f in os.listdir(SAMPLES_DIR) if f.startswith("%d " % preset)), None)      # or next(glob.iglob("blah*"), None)
     if basename:
         dirname = os.path.join(SAMPLES_DIR, basename)
@@ -498,7 +498,7 @@ else:
 
 if USE_SERIALPORT_MIDI:
  
-	import serial
+    import serial
     ser = serial.Serial('/dev/ttyAMA0', baudrate=38400)       # see hack in /boot/cmline.txt : 38400 is 31250 baud for MIDI!
 
     def MidiSerialCallback():
@@ -529,19 +529,19 @@ if USE_DOTSTAR:
     
     def DotStarGen():
         while True:
-			
-			timesincestroke = datetime.now() - lastnoteplayed
-			
-			if timesincestroke.total_seconds < 15: # after x seconds switch off candles
-				for i in range(0,numpixels):
-					if strip.getPixelColor(i) != strokecolor:
-				         strip.setPixelColor(i, defaultcolor) # set to default color
-			else:
-				for i in range(0,numpixels):
-					strip.setPixelColor(i, 0) # Set black=off
-					
-			strip.show() # Refresh strip
-			time.sleep(1)
+            
+            timesincestroke = datetime.now() - lastnoteplayed
+            
+            if timesincestroke.total_seconds < 15: # after x seconds switch off candles
+                for i in range(0,numpixels):
+                    if strip.getPixelColor(i) != strokecolor:
+                         strip.setPixelColor(i, defaultcolor) # set to default color
+            else:
+                for i in range(0,numpixels):
+                    strip.setPixelColor(i, 0) # Set black=off
+                    
+            strip.show() # Refresh strip
+            time.sleep(1)
 
     MidiThread = threading.Thread(target=DotStarGen)
     MidiThread.daemon = True
@@ -554,17 +554,17 @@ if USE_CANDLE:
     
     def CandleCtrl():
         while True:
-			
-			timesincestroke = datetime.now() - lastnoteplayed
-			
-			if timesincestroke.total_seconds < 15: # after x seconds switch off candles
-				GPIO.output(candleleftpin,GPIO.HIGH) # Put the left LED on
-				GPIO.output(candlerightpin,GPIO.HIGH) # Put the right LED on
-			else:
-				GPIO.output(candleleftpin,GPIO.LOW) # Put the left LED off
-				GPIO.output(candlerightpin,GPIO.LOW) # Put the right LED off
-			
-			time.sleep(1)
+            
+            timesincestroke = datetime.now() - lastnoteplayed
+            
+            if timesincestroke.total_seconds < 15: # after x seconds switch off candles
+                GPIO.output(candleleftpin,GPIO.HIGH) # Put the left LED on
+                GPIO.output(candlerightpin,GPIO.HIGH) # Put the right LED on
+            else:
+                GPIO.output(candleleftpin,GPIO.LOW) # Put the left LED off
+                GPIO.output(candlerightpin,GPIO.LOW) # Put the right LED off
+            
+            time.sleep(1)
 
     MidiThread = threading.Thread(target=CandleCtrl)
     MidiThread.daemon = True
