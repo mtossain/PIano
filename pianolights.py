@@ -24,23 +24,17 @@ GPIO.setmode(GPIO.BCM)
 # CONFIG
 #########################################
 
-PinCandleLeft = 13           # Pin for left candle LED
-PinCandleRight = 4          # Pin for left candle LED
-PinStarLights = 10           # Pin for starlights
-PinMotionDetect = 15        # Pin for PIR motion detect sensor
+PinCandleLeft = 13 # Pin for left candle LED
+PinCandleRight = 4 # Pin for right candle LED
+PinStarLights = 10 # Pin for starlights
+PinMotionDetect = 15 # Pin for PIR motion detect sensor
 
-TimeOutLights = 5           # After x seconds lights turn off again
+TimeOutLights = 5 # After x seconds lights turn off again
 
 GPIO.setup(PinCandleLeft, GPIO.OUT)
 GPIO.setup(PinCandleRight, GPIO.OUT)
 GPIO.setup(PinStarLights, GPIO.OUT)
 GPIO.setup(PinMotionDetect, GPIO.IN)
-
-GPIO.output(PinStarLights,GPIO.LOW)    
-GPIO.output(PinCandleLeft,GPIO.LOW)
-GPIO.output(PinCandleRight,GPIO.LOW)
-
-motiondetected = datetime.datetime(1,1,1) # Initialise for first use
 
 #########################################
 # FUNCTIONS
@@ -49,7 +43,7 @@ motiondetected = datetime.datetime(1,1,1) # Initialise for first use
 def Motion():
     motiondetected = datetime.datetime.now()
 
-def CandleCtrl():
+def LightControl():
 	while True:
 		timesincemotion = datetime.datetime.now() - motiondetected
                 if timesincemotion.total_seconds() < TimeOutLights:
@@ -62,7 +56,17 @@ def CandleCtrl():
 		        GPIO.output(PinStarLights,GPIO.LOW)
 		time.sleep(1)
 
-MidiThread = threading.Thread(target=CandleCtrl)
+#########################################
+# START MAIN PROGRAM
+#########################################
+
+GPIO.output(PinStarLights,GPIO.LOW)    
+GPIO.output(PinCandleLeft,GPIO.LOW)
+GPIO.output(PinCandleRight,GPIO.LOW)
+
+motiondetected = datetime.datetime(1,1,1) # Initialise for first use
+
+MidiThread = threading.Thread(target=LightControl)
 MidiThread.daemon = True
 MidiThread.start()
 
