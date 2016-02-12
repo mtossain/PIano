@@ -24,9 +24,9 @@ GPIO.setmode(GPIO.BCM)
 # CONFIG
 #########################################
 
-PinCandleLeft = 8           # Pin for left candle LED
-PinCandleRight = 7          # Pin for left candle LED
-PinStarLights = 6           # Pin for starlights
+PinCandleLeft = 13           # Pin for left candle LED
+PinCandleRight = 4          # Pin for left candle LED
+PinStarLights = 10           # Pin for starlights
 PinMotionDetect = 15        # Pin for PIR motion detect sensor
 
 TimeOutLights = 5           # After x seconds lights turn off again
