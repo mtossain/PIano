@@ -40,7 +40,7 @@ GPIO.setup(PinMotionDetect, GPIO.IN)
 # FUNCTIONS
 #########################################
 
-def Motion():
+def Motion(PinMotionDetect):
     motiondetected = datetime.datetime.now()
 
 def LightControl():
@@ -70,6 +70,6 @@ MidiThread = threading.Thread(target=LightControl)
 MidiThread.daemon = True
 MidiThread.start()
 
-GPIO.add_event_detect(PinMotionDetect, GPIO.RISING, callback=Motion()) # Whenever the pin rises the interrupt is called
+GPIO.add_event_detect(PinMotionDetect, GPIO.RISING, callback=Motion) # Whenever the pin rises the interrupt is called
 while 1: # do not close the program, but keep on looking for the interrupt
     time.sleep(100)

@@ -50,7 +50,7 @@ candlerightpin = 7                      # Pin for left candle LED
 AudioFramesPerBuffer = 32               # For optical 64
 AudioRate = 44100                       # SPDIF datarate in Hz
 starpin = 6                             # pin for starlights
-LightsTimeOut = 30*60                   # TimeOut for ligths in seconds
+LightsTimeOut = 5*60                    # TimeOut for ligths in seconds
 
 
 if USE_CANDLE:
