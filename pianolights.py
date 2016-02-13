@@ -44,6 +44,7 @@ motiondetected = datetime.datetime.now() # Initialise for first use
 #########################################
 
 def LightControl():
+    global motiondetected
 	
     if GPIO.input(PinMotionDetect): # Detected a HIGH on this pin
         motiondetected = datetime.datetime.now()
