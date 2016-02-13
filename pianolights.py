@@ -38,18 +38,16 @@ GPIO.setup(PinStarLights, GPIO.OUT)
 GPIO.setup(PinMotionDetect, GPIO.IN)
 
 motiondetected = datetime.datetime.now() # Initialise for first use
-GPIO.remove_event_detect(PinMotionDetect)
 
 #########################################
 # FUNCTIONS
 #########################################
 
-def Motion(PinMotionDetect):
-    global motiondetected
-    motiondetected = datetime.datetime.now()
-    print('Detected motion')
-
 def LightControl():
+    
+	if GPIO.input(PinMotionDetect) # Detected a HIGH on this pin
+        motiondetected = datetime.datetime.now()
+	    
     while True:
         timesincemotion = datetime.datetime.now() - motiondetected
         if timesincemotion.total_seconds() < TimeOutLights:
@@ -60,7 +58,8 @@ def LightControl():
 	    GPIO.output(PinCandleLeft,GPIO.LOW) 
 	    GPIO.output(PinCandleRight,GPIO.LOW) 
 	    GPIO.output(PinStarLights,GPIO.LOW)
-	time.sleep(1)
+	
+	time.sleep(0.5)
 
 #########################################
 # START MAIN PROGRAM
@@ -73,8 +72,6 @@ GPIO.output(PinCandleRight,GPIO.LOW)
 MidiThread = threading.Thread(target=LightControl)
 MidiThread.daemon = True
 MidiThread.start()
-
-GPIO.add_event_detect(PinMotionDetect, GPIO.BOTH, callback=Motion) # Whenever the pin rises the interrupt is called
 
 while 1: # do not close the program, but keep on looking for the interrupt
     time.sleep(100)
