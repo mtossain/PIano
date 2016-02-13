@@ -18,7 +18,7 @@ from datetime import timedelta
 from datetime import date
 import RPi.GPIO as GPIO
 GPIO.setmode(GPIO.BCM)
-GPIO.setwarnings(False)
+#GPIO.setwarnings(False)
 
 #########################################
 # LOCAL
@@ -30,7 +30,7 @@ PinCandleRight = 4 # Pin for right candle LED
 PinStarLights = 10 # Pin for starlights
 PinMotionDetect = 15 # Pin for PIR motion detect sensor
 
-TimeOutLights = 5 # After x seconds lights turn off again
+TimeOutLights = 5*60 # After x seconds lights turn off again
 
 GPIO.setup(PinCandleLeft, GPIO.OUT)
 GPIO.setup(PinCandleRight, GPIO.OUT)
@@ -48,10 +48,11 @@ def LightControl():
     global motiondetected
     global PinMotionDetect
     
-    if GPIO.input(PinMotionDetect): # Detected a HIGH on this pin
-        motiondetected = datetime.datetime.now()
-	    
     while True:
+        if GPIO.input(PinMotionDetect): # Detected a HIGH on this pin
+            motiondetected = datetime.datetime.now()
+            print('Motion detected')
+    
         timesincemotion = datetime.datetime.now() - motiondetected
         if timesincemotion.total_seconds() < TimeOutLights:
 	    GPIO.output(PinCandleLeft,GPIO.HIGH)
